@@ -71,16 +71,28 @@ func (r *CrudReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	found := &appsv1.Deployment{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, found)
 	var result *reconcile.Result
-	result, err = r.ensureDeployment(req, instance, r.backendDeployment(instance))
+	result, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.App, instance))
 	if result != nil {
-		log.Error(err, "Deployment Not ready")
+		log.Error(err, "App Deployment Not ready")
+		return *result, err
+	}
+
+	result, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.Db, instance))
+	if result != nil {
+		log.Error(err, "Db Deployment Not ready")
 		return *result, err
 	}
 
 	// Check if this Service already exists
-	result, err = r.ensureService(req, instance, r.backendService(instance))
+	result, err = r.ensureService(req, instance, r.backendService(instance.Spec.App, instance))
 	if result != nil {
-		log.Error(err, "Service Not ready")
+		log.Error(err, "App Service Not ready")
+		return *result, err
+	}
+
+	result, err = r.ensureService(req, instance, r.backendService(instance.Spec.Db, instance))
+	if result != nil {
+		log.Error(err, "Db Service Not ready")
 		return *result, err
 	}
 

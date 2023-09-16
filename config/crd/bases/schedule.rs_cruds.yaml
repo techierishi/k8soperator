@@ -46,15 +46,20 @@ spec:
                   name:
                     type: string
                   port:
-                    type: string
+                    format: int32
+                    type: integer
                   svc:
                     properties:
                       name:
                         type: string
+                      nodePort:
+                        format: int32
+                        type: integer
                       port:
-                        type: string
+                        format: int32
+                        type: integer
                       targetPort:
-                        type: string
+                        type: integer
                       type:
                         type: string
                     type: object
@@ -70,15 +75,20 @@ spec:
                   name:
                     type: string
                   port:
-                    type: string
+                    format: int32
+                    type: integer
                   svc:
                     properties:
                       name:
                         type: string
+                      nodePort:
+                        format: int32
+                        type: integer
                       port:
-                        type: string
+                        format: int32
+                        type: integer
                       targetPort:
-                        type: string
+                        type: integer
                       type:
                         type: string
                     type: object

@@ -48,21 +48,21 @@ func (r *CrudReconciler) ensureService(request reconcile.Request,
 }
 
 // backendService is a code for creating a Service
-func (r *CrudReconciler) backendService(v *mydomainv1alpha1.Crud) *corev1.Service {
-	labels := labels(v, "backend")
+func (r *CrudReconciler) backendService(module mydomainv1alpha1.Module, v *mydomainv1alpha1.Crud) *corev1.Service {
+	labels := labels(v, module.Name)
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "backend-service",
+			Name:      module.Svc.Name,
 			Namespace: v.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
-				Port:       80,
-				TargetPort: intstr.FromInt(8080),
-				NodePort:   30685,
+				Port:       module.Svc.Port,
+				TargetPort: intstr.FromInt(module.Svc.TargetPort),
+				NodePort:   module.Svc.NodePort,
 			}},
 			Type: corev1.ServiceTypeNodePort,
 		},

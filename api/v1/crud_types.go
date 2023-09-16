@@ -23,13 +23,14 @@ import (
 type Svc struct {
 	Name       string `json:"name,omitempty"`
 	Type       string `json:"type,omitempty"`
-	Port       string `json:"port,omitempty"`
-	TargetPort string `json:"targetPort,omitempty"`
+	Port       int32  `json:"port,omitempty"`
+	TargetPort int    `json:"targetPort,omitempty"`
+	NodePort   int32  `json:"nodePort,omitempty"`
 }
 type Module struct {
 	Name  string            `json:"name,omitempty"`
 	Image string            `json:"image,omitempty"`
-	Port  string            `json:"port,omitempty"`
+	Port  int32             `json:"port,omitempty"`
 	Env   map[string]string `json:"env,omitempty"`
 	Svc   Svc               `json:"svc,omitempty"`
 }

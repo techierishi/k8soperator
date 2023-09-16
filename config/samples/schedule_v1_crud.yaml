@@ -10,26 +10,26 @@ metadata:
   name: crud-sample
 spec:
   app:
-    image: "testimage"
-    name: "testapp"
-    port: "78060"
+    image: "ghcr.io/techierishi/mongocrud:latest"
+    name: "mongocrud"
+    port: 8060
     env:
-      DBPATH: "testpath"
+      DBPATH: "mongodb://mongodb:27017"
     svc:
-      name: "appsvc"
-      port: "78060"
-      targetPort: "88080"
+      name: "mongocrud"
+      port: 8060
+      targetPort: 8060
+      nodePort: 30685
   db:
-    image: "testimage"
-    name: "testapp"
-    port: "78060"
-    env:
-      DBPATH: "testpath"
+    image: "mongo:latest"
+    name: "mongodb"
+    port: 8060
     svc:
-      name: "appsvc"
-      port: "78060"
-      targetPort: "88080"
+      name: "mongodb"
+      port: 27017
+      targetPort: 27017
+      nodePort: 30686
   volume:
     capacity: "5gi"
-    path: "/test/path"
+    path: "/data/db/"
     storage: "1Gi"
