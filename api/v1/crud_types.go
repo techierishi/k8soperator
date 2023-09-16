@@ -20,6 +20,26 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type Svc struct {
+	Name       string `json:"name,omitempty"`
+	Type       string `json:"type,omitempty"`
+	Port       string `json:"port,omitempty"`
+	TargetPort string `json:"targetPort,omitempty"`
+}
+type Module struct {
+	Name  string            `json:"name,omitempty"`
+	Image string            `json:"image,omitempty"`
+	Port  string            `json:"port,omitempty"`
+	Env   map[string]string `json:"env,omitempty"`
+	Svc   Svc               `json:"svc,omitempty"`
+}
+
+type Volume struct {
+	Capacity string `json:"capacity,omitempty"`
+	Path     string `json:"path,omitempty"`
+	Storage  string `json:"storage,omitempty"`
+}
+
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
@@ -28,10 +48,9 @@ type CrudSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	PodImage   string `json:"podImage,omitempty"`
-	PvCapacity string `json:"pvCapacity,omitempty"`
-	PvPath     string `json:"pvPath,omitempty"`
-	PvcStorage string `json:"pvcStorage,omitempty"`
+	App    Module `json:"app,omitempty"`
+	Db     Module `json:"db,omitempty"`
+	Volume Volume `json:"volume,omitempty"`
 }
 
 // CrudStatus defines the observed state of Crud

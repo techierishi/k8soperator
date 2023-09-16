@@ -81,7 +81,7 @@ func (r *CrudReconciler) backendDeployment(v *mydomainv1alpha1.Crud) *appsv1.Dep
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            "mongocrud",
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 7070,
+							ContainerPort: 8060,
 							Name:          "hello",
 						}},
 					}},

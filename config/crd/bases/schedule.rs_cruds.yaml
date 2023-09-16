@@ -35,14 +35,63 @@ spec:
           spec:
             description: CrudSpec defines the desired state of Crud
             properties:
-              podImage:
-                type: string
-              pvCapacity:
-                type: string
-              pvPath:
-                type: string
-              pvcStorage:
-                type: string
+              app:
+                properties:
+                  env:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  image:
+                    type: string
+                  name:
+                    type: string
+                  port:
+                    type: string
+                  svc:
+                    properties:
+                      name:
+                        type: string
+                      port:
+                        type: string
+                      targetPort:
+                        type: string
+                      type:
+                        type: string
+                    type: object
+                type: object
+              db:
+                properties:
+                  env:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  image:
+                    type: string
+                  name:
+                    type: string
+                  port:
+                    type: string
+                  svc:
+                    properties:
+                      name:
+                        type: string
+                      port:
+                        type: string
+                      targetPort:
+                        type: string
+                      type:
+                        type: string
+                    type: object
+                type: object
+              volume:
+                properties:
+                  capacity:
+                    type: string
+                  path:
+                    type: string
+                  storage:
+                    type: string
+                type: object
             type: object
           status:
             description: CrudStatus defines the observed state of Crud

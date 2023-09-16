@@ -9,7 +9,27 @@ metadata:
     app.kubernetes.io/created-by: k8soperator
   name: crud-sample
 spec:
-  podImage: mongocrud ghcr.io/techierishi/mongocrud:latest
-  pvCapacity: 4Gi
-  pvPath: /data/db
-  pvcStorage: 1Gi
+  app:
+    image: "testimage"
+    name: "testapp"
+    port: "78060"
+    env:
+      DBPATH: "testpath"
+    svc:
+      name: "appsvc"
+      port: "78060"
+      targetPort: "88080"
+  db:
+    image: "testimage"
+    name: "testapp"
+    port: "78060"
+    env:
+      DBPATH: "testpath"
+    svc:
+      name: "appsvc"
+      port: "78060"
+      targetPort: "88080"
+  volume:
+    capacity: "5gi"
+    path: "/test/path"
+    storage: "1Gi"
