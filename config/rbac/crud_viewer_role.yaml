@@ -1,0 +1,27 @@
+# permissions for end users to view cruds.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: crud-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: k8soperator
+    app.kubernetes.io/part-of: k8soperator
+    app.kubernetes.io/managed-by: kustomize
+  name: crud-viewer-role
+rules:
+- apiGroups:
+  - schedule.rs
+  resources:
+  - cruds
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - schedule.rs
+  resources:
+  - cruds/status
+  verbs:
+  - get

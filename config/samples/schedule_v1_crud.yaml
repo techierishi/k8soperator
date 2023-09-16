@@ -1,0 +1,15 @@
+apiVersion: schedule.rs/v1
+kind: Crud
+metadata:
+  labels:
+    app.kubernetes.io/name: crud
+    app.kubernetes.io/instance: crud-sample
+    app.kubernetes.io/part-of: k8soperator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: k8soperator
+  name: crud-sample
+spec:
+  podImage: mongocrud ghcr.io/techierishi/mongocrud:latest
+  pvCapacity: 4Gi
+  pvPath: /data/db
+  pvcStorage: 1Gi
