@@ -77,7 +77,17 @@ make manifests
 
 More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
 
+## Get all resources:
 
+```sh
+kubectl get sc; kubectl get pv; kubectl get pvc; kubectl get pod; kubectl get service 
+```
+
+## Delete all created resources:
+
+```sh
+./bin/kustomize build config/samples | kubectl delete -f -; kubectl delete sc crud-storage-class; kubectl delete pv crud-pv
+```
 ## Port forward
 
 ```sh
