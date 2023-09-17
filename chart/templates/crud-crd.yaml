@@ -5,7 +5,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.11.1
   labels:
-  {{- include "chart.labels" . | nindent 4 }}
+    app.kubernetes.io/name: crud
+    app.kubernetes.io/instance: crud-sample
+    app.kubernetes.io/part-of: k8soperator
+    app.kubernetes.io/managed-by: Helm
+    meta.helm.sh/release-name: crud-helm
+    meta.helm.sh/release-namespace: default
+    app.kubernetes.io/created-by: k8soperator
 spec:
   group: schedule.rs
   names:

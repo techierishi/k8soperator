@@ -86,6 +86,20 @@ make docker-push IMG=ghcr.io/techierishi/k8soperator-bundle:latest
 
 ```
 
+## Generate helm charts
+
+```sh
+make helm
+```
+
+## Deploy oprator
+
+```sh
+helm install -f chart/values.yaml crud-helm ./chart/
+# now 
+./bin/kustomize build config/samples | kubectl apply -f -
+```
+
 ## Get all resources:
 
 ```sh
