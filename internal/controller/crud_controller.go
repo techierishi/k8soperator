@@ -70,16 +70,26 @@ func (r *CrudReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return reconcile.Result{}, err
 	}
 
-	r.storageClassRecon(err, instance, req, log)
-
-	r.persistentVolumeRecon(err, instance, req, log)
-
-	r.persistentVolumeClaimRecon(err, instance, req, log)
-
-	r.appDeploymentSvcRecon(err, instance, req, log)
-
-	r.dbDeploymentSvcRecon(err, instance, req, log)
-
+	res, err := r.storageClassRecon(err, instance, req, log)
+	if err != nil {
+		return res, err
+	}
+	res, err = r.persistentVolumeRecon(err, instance, req, log)
+	if err != nil {
+		return res, err
+	}
+	res, err = r.persistentVolumeClaimRecon(err, instance, req, log)
+	if err != nil {
+		return res, err
+	}
+	res, err = r.appDeploymentSvcRecon(err, instance, req, log)
+	if err != nil {
+		return res, err
+	}
+	res, err = r.dbDeploymentSvcRecon(err, instance, req, log)
+	if err != nil {
+		return res, err
+	}
 	return ctrl.Result{}, nil
 }
 
@@ -87,16 +97,14 @@ func (r *CrudReconciler) dbDeploymentSvcRecon(err error, instance *schedulev1.Cr
 	dbFound := &appsv1.Deployment{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.Db.Name, Namespace: instance.Namespace}, dbFound)
 	var dbResult *reconcile.Result
-	dbResult, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.Db, &instance.Spec.Volume, instance))
-	if dbResult != nil {
-		log.Error(err, "Db Deployment Not ready")
-		return *dbResult, err
-	}
-
 	dbResult, err = r.ensureService(req, instance, r.backendService(instance.Spec.Db, instance))
 	if dbResult != nil {
 		log.Error(err, "Db Service Not ready")
-		return *dbResult, err
+	}
+
+	dbResult, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.Db, &instance.Spec.Volume, instance))
+	if dbResult != nil {
+		log.Error(err, "Db Deployment Not ready")
 	}
 
 	log.Info("Reconcile: DB Deployment and service",
@@ -108,16 +116,13 @@ func (r *CrudReconciler) appDeploymentSvcRecon(err error, instance *schedulev1.C
 	appFound := &appsv1.Deployment{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, appFound)
 	var appResult *reconcile.Result
-	appResult, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.App, nil, instance))
-	if appResult != nil {
-		log.Error(err, "App Deployment Not ready")
-		return *appResult, err
-	}
-
 	appResult, err = r.ensureService(req, instance, r.backendService(instance.Spec.App, instance))
 	if appResult != nil {
 		log.Error(err, "App Service Not ready")
-		return *appResult, err
+	}
+	appResult, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.App, nil, instance))
+	if appResult != nil {
+		log.Error(err, "App Deployment Not ready")
 	}
 
 	log.Info("Reconcile: App Deployment and service",
@@ -159,7 +164,7 @@ func (r *CrudReconciler) storageClassRecon(err error, instance *schedulev1.Crud,
 	scFound := &storagev1.StorageClass{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, scFound)
 	var scResult *reconcile.Result
-	scResult, err = r.ensurePersistentVolume(req, instance, r.persistentVolume(instance.Spec.Volume, instance))
+	scResult, err = r.ensureStorageClass(req, instance, r.storageClass(instance.Spec.Volume, instance))
 	if scResult != nil {
 		log.Error(err, "StorageClass Not ready")
 		return *scResult, err

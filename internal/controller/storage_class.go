@@ -47,7 +47,7 @@ func (r *CrudReconciler) ensureStorageClass(request reconcile.Request,
 }
 
 // backendSc is a code for creating a Sc
-func (r *CrudReconciler) storageClas(vol mydomainv1alpha1.Volume, v *mydomainv1alpha1.Crud) *storagev1.StorageClass {
+func (r *CrudReconciler) storageClass(vol mydomainv1alpha1.Volume, v *mydomainv1alpha1.Crud) *storagev1.StorageClass {
 
 	volumeExpansion := true
 	volumeBindingMode := storagev1.VolumeBindingMode("WaitForFirstConsumer")
@@ -60,6 +60,7 @@ func (r *CrudReconciler) storageClas(vol mydomainv1alpha1.Volume, v *mydomainv1a
 		VolumeBindingMode:    &volumeBindingMode,
 		AllowVolumeExpansion: &volumeExpansion,
 		ReclaimPolicy:        &reclaimPolicy,
+		Provisioner:          "kubernetes.io/no-provisioner",
 	}
 
 	controllerutil.SetControllerReference(v, sc, r.Scheme)

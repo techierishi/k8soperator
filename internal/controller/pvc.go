@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -44,8 +45,9 @@ func (r *CrudReconciler) ensurePersistentVolumeClaim(request reconcile.Request,
 	}
 
 	if found.Spec.Resources.Requests.Storage() != pvc.Spec.Resources.Requests.Storage() {
+		found.Spec.Resources.Requests[corev1.ResourceStorage] = resource.MustParse(pvc.Spec.Resources.Requests.Storage().String())
 		// Create the pvc
-		err = r.Create(context.TODO(), pvc)
+		err = r.Client.Patch(context.TODO(), found, client.MergeFrom(found))
 
 		if err != nil {
 			// Pvc creation failed
