@@ -43,13 +43,26 @@ func (r *CrudReconciler) ensurePersistentVolumeClaim(request reconcile.Request,
 		return &reconcile.Result{}, err
 	}
 
+	if found.Spec.Resources.Requests.Storage() != pvc.Spec.Resources.Requests.Storage() {
+		// Create the pvc
+		err = r.Create(context.TODO(), pvc)
+
+		if err != nil {
+			// Pvc creation failed
+			return &reconcile.Result{}, err
+		} else {
+			// Pvc creation was successful
+			return nil, nil
+		}
+	}
+
 	return nil, nil
 }
 
 // backendPvc is a code for creating a Pvc
 func (r *CrudReconciler) persistentVolumeClaim(vol mydomainv1alpha1.Volume, v *mydomainv1alpha1.Crud) *corev1.PersistentVolumeClaim {
 
-	storageCls := "standard"
+	storageCls := "crud-storage-class"
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      vol.PvcName,

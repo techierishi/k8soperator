@@ -49,6 +49,7 @@ func (r *CrudReconciler) ensurePersistentVolume(request reconcile.Request,
 // backendPv is a code for creating a Pv
 func (r *CrudReconciler) persistentVolume(vol mydomainv1alpha1.Volume, v *mydomainv1alpha1.Crud) *corev1.PersistentVolume {
 
+	volumeMode := corev1.PersistentVolumeMode("Filesystem")
 	pv := &corev1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      vol.PvName,
@@ -58,6 +59,7 @@ func (r *CrudReconciler) persistentVolume(vol mydomainv1alpha1.Volume, v *mydoma
 			Capacity: corev1.ResourceList{
 				corev1.ResourceStorage: resource.MustParse(vol.Capacity),
 			},
+			VolumeMode: &volumeMode,
 			AccessModes: []corev1.PersistentVolumeAccessMode{
 				corev1.ReadWriteOnce,
 			},
@@ -67,7 +69,7 @@ func (r *CrudReconciler) persistentVolume(vol mydomainv1alpha1.Volume, v *mydoma
 					Path: vol.Path,
 				},
 			},
-			StorageClassName: "standard",
+			StorageClassName: "crud-storage-class",
 		},
 	}
 

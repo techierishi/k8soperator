@@ -61,11 +61,16 @@ func (r *CrudReconciler) backendDeployment(module mydomainv1alpha1.Module, vol *
 
 	volMounts := []corev1.VolumeMount{}
 	volumes := []corev1.Volume{}
+
+	volPath, ok := module.Env["VOLPATH"]
+	if !ok {
+		volPath = "/data/db"
+	}
 	if vol != nil {
 
 		volMounts = []corev1.VolumeMount{
 			{
-				MountPath: vol.Path,
+				MountPath: volPath,
 				Name:      vol.PvcName,
 			},
 		}
@@ -73,6 +78,11 @@ func (r *CrudReconciler) backendDeployment(module mydomainv1alpha1.Module, vol *
 		volumes = []corev1.Volume{
 			{
 				Name: vol.PvcName,
+				VolumeSource: corev1.VolumeSource{
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: vol.PvcName,
+					},
+				},
 			},
 		}
 	}

@@ -16,6 +16,7 @@ spec:
     port: 8060
     env:
       DBPATH: "mongodb://mongodb:27017"
+      VOLPATH: "/data/db"
     svc:
       name: "mongocrud"
       port: 8060
@@ -24,7 +25,7 @@ spec:
   db:
     image: "mongo:latest"
     name: "mongodb"
-    port: 8060
+    port: 27017
     svc:
       name: "mongodb"
       port: 27017
@@ -34,5 +35,5 @@ spec:
     pvName: "crud-pv"
     pvcName: "crud-pvc"
     capacity: "1000Mi"
-    path: "/data/db/"
-    storage: "400Mi"
+    path: "/data"
+    storage: "200Mi"

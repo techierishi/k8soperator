@@ -21,6 +21,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -29,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	"github.com/go-logr/logr"
 	schedulev1 "github.com/techierishi/k8soperator/api/v1"
 )
 
@@ -68,50 +70,20 @@ func (r *CrudReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return reconcile.Result{}, err
 	}
 
-	pvFound := &corev1.PersistentVolume{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, pvFound)
-	var pvResult *reconcile.Result
-	pvResult, err = r.ensurePersistentVolume(req, instance, r.persistentVolume(instance.Spec.Volume, instance))
-	if pvResult != nil {
-		log.Error(err, "Persistent Volume Not ready")
-		return *pvResult, err
-	}
+	r.storageClassRecon(err, instance, req, log)
 
-	// PV already exists - don't requeue
-	log.Info("Skip reconcile: PV already exists",
-		"PV.Namespace", pvFound.Namespace, "PV.Name", pvFound.Name)
-	pvcFound := &corev1.PersistentVolumeClaim{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, pvcFound)
-	var pvcResult *reconcile.Result
-	pvcResult, err = r.ensurePersistentVolumeClaim(req, instance, r.persistentVolumeClaim(instance.Spec.Volume, instance))
-	if pvcResult != nil {
-		log.Error(err, "Persistent Volume Not ready")
-		return *pvcResult, err
-	}
-	// PVC already exists - don't requeue
-	log.Info("Skip reconcile: PVC already exists",
-		"PVC.Namespace", pvcFound.Namespace, "PVC.Name", pvcFound.Name)
+	r.persistentVolumeRecon(err, instance, req, log)
 
-	// Check if this Deployment already exists
-	appFound := &appsv1.Deployment{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, appFound)
-	var appResult *reconcile.Result
-	appResult, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.App, nil, instance))
-	if appResult != nil {
-		log.Error(err, "App Deployment Not ready")
-		return *appResult, err
-	}
+	r.persistentVolumeClaimRecon(err, instance, req, log)
 
-	// Check if this Service already exists
-	appResult, err = r.ensureService(req, instance, r.backendService(instance.Spec.App, instance))
-	if appResult != nil {
-		log.Error(err, "App Service Not ready")
-		return *appResult, err
-	}
-	// App Deployment and Service already exists - don't requeue
-	log.Info("Skip reconcile: App Deployment and service already exists",
-		"Deployment.Namespace", appFound.Namespace, "Deployment.Name", appFound.Name)
+	r.appDeploymentSvcRecon(err, instance, req, log)
 
+	r.dbDeploymentSvcRecon(err, instance, req, log)
+
+	return ctrl.Result{}, nil
+}
+
+func (r *CrudReconciler) dbDeploymentSvcRecon(err error, instance *schedulev1.Crud, req reconcile.Request, log logr.Logger) (reconcile.Result, error) {
 	dbFound := &appsv1.Deployment{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.Db.Name, Namespace: instance.Namespace}, dbFound)
 	var dbResult *reconcile.Result
@@ -127,11 +99,75 @@ func (r *CrudReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return *dbResult, err
 	}
 
-	// Db Deployment and Service already exists - don't requeue
-	log.Info("Skip reconcile: DB Deployment and service already exists",
+	log.Info("Reconcile: DB Deployment and service",
 		"Deployment.Namespace", dbFound.Namespace, "Deployment.Name", dbFound.Name)
+	return reconcile.Result{}, nil
+}
 
-	return ctrl.Result{}, nil
+func (r *CrudReconciler) appDeploymentSvcRecon(err error, instance *schedulev1.Crud, req reconcile.Request, log logr.Logger) (reconcile.Result, error) {
+	appFound := &appsv1.Deployment{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, appFound)
+	var appResult *reconcile.Result
+	appResult, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.App, nil, instance))
+	if appResult != nil {
+		log.Error(err, "App Deployment Not ready")
+		return *appResult, err
+	}
+
+	appResult, err = r.ensureService(req, instance, r.backendService(instance.Spec.App, instance))
+	if appResult != nil {
+		log.Error(err, "App Service Not ready")
+		return *appResult, err
+	}
+
+	log.Info("Reconcile: App Deployment and service",
+		"Deployment.Namespace", appFound.Namespace, "Deployment.Name", appFound.Name)
+	return reconcile.Result{}, nil
+}
+
+func (r *CrudReconciler) persistentVolumeClaimRecon(err error, instance *schedulev1.Crud, req reconcile.Request, log logr.Logger) (reconcile.Result, error) {
+	pvcFound := &corev1.PersistentVolumeClaim{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, pvcFound)
+	var pvcResult *reconcile.Result
+	pvcResult, err = r.ensurePersistentVolumeClaim(req, instance, r.persistentVolumeClaim(instance.Spec.Volume, instance))
+	if pvcResult != nil {
+		log.Error(err, "PersistentVolumeClaim Not ready")
+		return *pvcResult, err
+	}
+
+	log.Info("Reconcile: PVC",
+		"PVC.Namespace", pvcFound.Namespace, "PVC.Name", pvcFound.Name)
+	return reconcile.Result{}, nil
+}
+
+func (r *CrudReconciler) persistentVolumeRecon(err error, instance *schedulev1.Crud, req reconcile.Request, log logr.Logger) (reconcile.Result, error) {
+	pvFound := &corev1.PersistentVolume{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, pvFound)
+	var pvResult *reconcile.Result
+	pvResult, err = r.ensurePersistentVolume(req, instance, r.persistentVolume(instance.Spec.Volume, instance))
+	if pvResult != nil {
+		log.Error(err, "PersistentVolume Not ready")
+		return *pvResult, err
+	}
+
+	log.Info("Reconcile: PV",
+		"PV.Namespace", pvFound.Namespace, "PV.Name", pvFound.Name)
+	return reconcile.Result{}, nil
+}
+
+func (r *CrudReconciler) storageClassRecon(err error, instance *schedulev1.Crud, req reconcile.Request, log logr.Logger) (reconcile.Result, error) {
+	scFound := &storagev1.StorageClass{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, scFound)
+	var scResult *reconcile.Result
+	scResult, err = r.ensurePersistentVolume(req, instance, r.persistentVolume(instance.Spec.Volume, instance))
+	if scResult != nil {
+		log.Error(err, "StorageClass Not ready")
+		return *scResult, err
+	}
+
+	log.Info("Reconcile: SC",
+		"SC.Namespace", scFound.Namespace, "SC.Name", scFound.Name)
+	return reconcile.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
