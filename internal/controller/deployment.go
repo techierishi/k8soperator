@@ -61,7 +61,6 @@ func (r *CrudReconciler) backendDeployment(module mydomainv1alpha1.Module, vol *
 
 	volMounts := []corev1.VolumeMount{}
 	volumes := []corev1.Volume{}
-
 	if vol != nil {
 
 		volMounts = []corev1.VolumeMount{
@@ -75,6 +74,17 @@ func (r *CrudReconciler) backendDeployment(module mydomainv1alpha1.Module, vol *
 			{
 				Name: vol.PvcName,
 			},
+		}
+	}
+
+	envs := []corev1.EnvVar{}
+
+	if len(module.Env) != 0 {
+		for k, v := range module.Env {
+			envs = append(envs, corev1.EnvVar{
+				Name:  k,
+				Value: v,
+			})
 		}
 	}
 
@@ -103,6 +113,7 @@ func (r *CrudReconciler) backendDeployment(module mydomainv1alpha1.Module, vol *
 							ContainerPort: module.Port,
 						}},
 						VolumeMounts: volMounts,
+						Env:          envs,
 					}},
 
 					Volumes: volumes,

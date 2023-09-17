@@ -16,7 +16,6 @@ spec:
     port: 8060
     env:
       DBPATH: "mongodb://mongodb:27017"
-      VOLPATH: "/data/db/"
     svc:
       name: "mongocrud"
       port: 8060

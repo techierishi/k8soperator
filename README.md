@@ -76,6 +76,12 @@ make manifests
 
 More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
 
+
+## Port forward
+
+```sh
+kubectl port-forward svc/mongocrud 8060:8060
+```
 ## License
 
 Copyright 2023.
