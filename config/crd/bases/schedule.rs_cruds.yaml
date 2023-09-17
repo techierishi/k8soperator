@@ -99,6 +99,10 @@ spec:
                     type: string
                   path:
                     type: string
+                  pvName:
+                    type: string
+                  pvcName:
+                    type: string
                   storage:
                     type: string
                 type: object

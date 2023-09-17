@@ -20,6 +20,7 @@ import (
 	"context"
 
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -67,38 +68,68 @@ func (r *CrudReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return reconcile.Result{}, err
 	}
 
-	// Check if this Deployment already exists
-	found := &appsv1.Deployment{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, found)
-	var result *reconcile.Result
-	result, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.App, instance))
-	if result != nil {
-		log.Error(err, "App Deployment Not ready")
-		return *result, err
+	pvFound := &corev1.PersistentVolume{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, pvFound)
+	var pvResult *reconcile.Result
+	pvResult, err = r.ensurePersistentVolume(req, instance, r.persistentVolume(instance.Spec.Volume, instance))
+	if pvResult != nil {
+		log.Error(err, "Persistent Volume Not ready")
+		return *pvResult, err
 	}
 
-	result, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.Db, instance))
-	if result != nil {
-		log.Error(err, "Db Deployment Not ready")
-		return *result, err
+	// PV already exists - don't requeue
+	log.Info("Skip reconcile: PV already exists",
+		"PV.Namespace", pvFound.Namespace, "PV.Name", pvFound.Name)
+	pvcFound := &corev1.PersistentVolumeClaim{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, pvcFound)
+	var pvcResult *reconcile.Result
+	pvcResult, err = r.ensurePersistentVolumeClaim(req, instance, r.persistentVolumeClaim(instance.Spec.Volume, instance))
+	if pvcResult != nil {
+		log.Error(err, "Persistent Volume Not ready")
+		return *pvcResult, err
+	}
+	// PVC already exists - don't requeue
+	log.Info("Skip reconcile: PVC already exists",
+		"PVC.Namespace", pvcFound.Namespace, "PVC.Name", pvcFound.Name)
+
+	// Check if this Deployment already exists
+	appFound := &appsv1.Deployment{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.App.Name, Namespace: instance.Namespace}, appFound)
+	var appResult *reconcile.Result
+	appResult, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.App, nil, instance))
+	if appResult != nil {
+		log.Error(err, "App Deployment Not ready")
+		return *appResult, err
 	}
 
 	// Check if this Service already exists
-	result, err = r.ensureService(req, instance, r.backendService(instance.Spec.App, instance))
-	if result != nil {
+	appResult, err = r.ensureService(req, instance, r.backendService(instance.Spec.App, instance))
+	if appResult != nil {
 		log.Error(err, "App Service Not ready")
-		return *result, err
+		return *appResult, err
+	}
+	// App Deployment and Service already exists - don't requeue
+	log.Info("Skip reconcile: App Deployment and service already exists",
+		"Deployment.Namespace", appFound.Namespace, "Deployment.Name", appFound.Name)
+
+	dbFound := &appsv1.Deployment{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.Db.Name, Namespace: instance.Namespace}, dbFound)
+	var dbResult *reconcile.Result
+	dbResult, err = r.ensureDeployment(req, instance, r.backendDeployment(instance.Spec.Db, &instance.Spec.Volume, instance))
+	if dbResult != nil {
+		log.Error(err, "Db Deployment Not ready")
+		return *dbResult, err
 	}
 
-	result, err = r.ensureService(req, instance, r.backendService(instance.Spec.Db, instance))
-	if result != nil {
+	dbResult, err = r.ensureService(req, instance, r.backendService(instance.Spec.Db, instance))
+	if dbResult != nil {
 		log.Error(err, "Db Service Not ready")
-		return *result, err
+		return *dbResult, err
 	}
 
-	// Deployment and Service already exists - don't requeue
-	log.Info("Skip reconcile: Deployment and service already exists",
-		"Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
+	// Db Deployment and Service already exists - don't requeue
+	log.Info("Skip reconcile: DB Deployment and service already exists",
+		"Deployment.Namespace", dbFound.Namespace, "Deployment.Name", dbFound.Name)
 
 	return ctrl.Result{}, nil
 }

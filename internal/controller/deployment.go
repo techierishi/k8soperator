@@ -57,7 +57,26 @@ func (r *CrudReconciler) ensureDeployment(request reconcile.Request,
 }
 
 // backendDeployment is a code for Creating Deployment
-func (r *CrudReconciler) backendDeployment(module mydomainv1alpha1.Module, v *mydomainv1alpha1.Crud) *appsv1.Deployment {
+func (r *CrudReconciler) backendDeployment(module mydomainv1alpha1.Module, vol *mydomainv1alpha1.Volume, v *mydomainv1alpha1.Crud) *appsv1.Deployment {
+
+	volMounts := []corev1.VolumeMount{}
+	volumes := []corev1.Volume{}
+
+	if vol != nil {
+
+		volMounts = []corev1.VolumeMount{
+			{
+				MountPath: vol.Path,
+				Name:      vol.PvcName,
+			},
+		}
+
+		volumes = []corev1.Volume{
+			{
+				Name: vol.PvcName,
+			},
+		}
+	}
 
 	labels := labels(v, module.Name)
 	size := int32(1)
@@ -83,7 +102,10 @@ func (r *CrudReconciler) backendDeployment(module mydomainv1alpha1.Module, v *my
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: module.Port,
 						}},
+						VolumeMounts: volMounts,
 					}},
+
+					Volumes: volumes,
 				},
 			},
 		},

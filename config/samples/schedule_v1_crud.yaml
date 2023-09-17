@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: k8soperator
   name: crud-sample
+  namespace: default
 spec:
   app:
     image: "ghcr.io/techierishi/mongocrud:latest"
@@ -15,6 +16,7 @@ spec:
     port: 8060
     env:
       DBPATH: "mongodb://mongodb:27017"
+      VOLPATH: "/data/db/"
     svc:
       name: "mongocrud"
       port: 8060
@@ -30,6 +32,8 @@ spec:
       targetPort: 27017
       nodePort: 30686
   volume:
-    capacity: "5gi"
+    pvName: "crud-pv"
+    pvcName: "crud-pvc"
+    capacity: "1000Mi"
     path: "/data/db/"
-    storage: "1Gi"
+    storage: "400Mi"

@@ -36,6 +36,8 @@ type Module struct {
 }
 
 type Volume struct {
+	PvName   string `json:"pvName,omitempty"`
+	PvcName  string `json:"pvcName,omitempty"`
 	Capacity string `json:"capacity,omitempty"`
 	Path     string `json:"path,omitempty"`
 	Storage  string `json:"storage,omitempty"`
