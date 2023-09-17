@@ -19,7 +19,6 @@ kubectl apply -f config/samples/
 
 ```sh
 make docker-build docker-push IMG=ghcr.io/techierishi/k8soperator:latest
-make bundle IMG=ghcr.io/techierishi/k8soperator:latest
 ```
 
 3. Deploy the controller to the cluster with the image specified by `IMG`:
@@ -76,6 +75,16 @@ make manifests
 **NOTE:** Run `make --help` for more information on all potential `make` targets
 
 More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
+
+
+## Bundle commands
+
+```sh
+make bundle IMG=ghcr.io/techierishi/k8soperator:latest
+make bundle-build BUNDLE_IMG=ghcr.io/techierishi/k8soperator-bundle:latest
+make docker-push IMG=ghcr.io/techierishi/k8soperator-bundle:latest
+
+```
 
 ## Get all resources:
 

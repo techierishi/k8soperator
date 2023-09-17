@@ -21,7 +21,8 @@ metadata:
           "spec": {
             "app": {
               "env": {
-                "DBPATH": "mongodb://mongodb:27017"
+                "DBPATH": "mongodb://mongodb:27017",
+                "VOLPATH": "/data/db"
               },
               "image": "ghcr.io/techierishi/mongocrud:latest",
               "name": "mongocrud",
@@ -36,7 +37,7 @@ metadata:
             "db": {
               "image": "mongo:latest",
               "name": "mongodb",
-              "port": 8060,
+              "port": 27017,
               "svc": {
                 "name": "mongodb",
                 "nodePort": 30686,
@@ -46,16 +47,16 @@ metadata:
             },
             "volume": {
               "capacity": "1000Mi",
-              "path": "/data/db/",
+              "path": "/data",
               "pvName": "crud-pv",
               "pvcName": "crud-pvc",
-              "storage": "400Mi"
+              "storage": "230Mi"
             }
           }
         }
       ]
     capabilities: Basic Install
-    createdAt: "2023-09-17T18:37:16Z"
+    createdAt: "2023-09-17T21:51:08Z"
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4-alpha
   name: k8soperator.v0.0.1
