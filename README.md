@@ -141,6 +141,12 @@ make docker-push IMG=ghcr.io/techierishi/k8soperator-bundle:latest
 make helm
 ```
 
+## Caveats
+
+- Some cluster role has too much of permission make sure operator has enough role. This should be avoided in prod 
+- Best coding practices may be missing at some places keeping the mind that this is a test app
+
+
 ## License
 
 Copyright 2023.
