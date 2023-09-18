@@ -36,4 +36,4 @@ spec:
     pvcName: "crud-pvc"
     capacity: "1000Mi"
     path: "/data"
-    storage: "230Mi"
+    storage: "240Mi"

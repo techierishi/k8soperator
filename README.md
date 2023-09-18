@@ -1,12 +1,61 @@
 # k8soperator
 A sample K8S Operator to demonstrate crud app deployment 
 
-
-
-
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
 **Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
+
+
+# User Path
+
+> Testing has been done on local kind cluster
+
+## Deploy operator
+
+```sh
+# clone operator repo
+git clone https://github.com/techierishi/k8soperator.git
+cd k8soperator
+
+# deploy to local cluster
+helm install -f chart/values.yaml crud-helm ./chart/
+
+# now create Crud kind
+./bin/kustomize build config/samples | kubectl apply -f -
+```
+
+## Port forward
+
+```sh
+kubectl port-forward svc/mongocrud 8060:8060
+```
+
+## Get all resources:
+
+```sh
+kubectl get sc; kubectl get pv; kubectl get pvc; kubectl get pod; kubectl get service 
+```
+
+## Delete all created resources:
+
+```sh
+./bin/kustomize build config/samples | kubectl delete -f -; kubectl delete sc crud-storage-class; kubectl delete pv crud-pv
+```
+
+## Code explanation
+
+`internal/controller/crud_controller.go` is the entrypoint of all reconcilers
+`internal/controller/storage_class.go` is to create storage class with `AllowVolumeExpansion` capability
+`internal/controller/pc.go` is to create persistent volume
+`internal/controller/pvc.go` is to create persistent volume claim for database
+`internal/controller/service.go` is to create node port service
+`internal/controller/deployment.go` is to create deployment
+`config/samples/schedule_v1_crud.yaml` has sample Crud kind yaml
+
+
+---
+
+# Developer Path
 
 ### Running on the cluster
 1. Install Instances of Custom Resources:
@@ -42,7 +91,7 @@ make undeploy
 ```
 
 ## Contributing
-@techierishi
+https://github.com/techierishi
 
 ### How it works
 This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
@@ -92,30 +141,6 @@ make docker-push IMG=ghcr.io/techierishi/k8soperator-bundle:latest
 make helm
 ```
 
-## Deploy oprator
-
-```sh
-helm install -f chart/values.yaml crud-helm ./chart/
-# now 
-./bin/kustomize build config/samples | kubectl apply -f -
-```
-
-## Get all resources:
-
-```sh
-kubectl get sc; kubectl get pv; kubectl get pvc; kubectl get pod; kubectl get service 
-```
-
-## Delete all created resources:
-
-```sh
-./bin/kustomize build config/samples | kubectl delete -f -; kubectl delete sc crud-storage-class; kubectl delete pv crud-pv
-```
-## Port forward
-
-```sh
-kubectl port-forward svc/mongocrud 8060:8060
-```
 ## License
 
 Copyright 2023.
